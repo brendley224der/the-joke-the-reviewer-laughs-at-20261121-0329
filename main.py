@@ -25,6 +25,9 @@ def main() -> int:
     if "\n" in joke or "\r" in joke:
         print("error: joke must be a single line", file=sys.stderr)
         return 1
+    if any(ord(c) < 0x20 or ord(c) == 0x7F for c in joke):
+        print("error: joke contains control characters", file=sys.stderr)
+        return 1
     if not 1 <= len(joke) <= 280:
         print(f"error: joke is {len(joke)} code points, must be 1-280",
               file=sys.stderr)
