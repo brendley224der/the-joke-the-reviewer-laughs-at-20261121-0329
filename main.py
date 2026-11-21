@@ -1,11 +1,12 @@
-"""Write one joke about working beside AI coding agents.
+#!/usr/bin/env python3
+"""The joke the reviewer laughs at.
 
-Entry for make.fun's "The joke the reviewer laughs at" bounty.
-Pure stdlib, deterministic: the same joke every run, no network,
-no randomness, no timestamps. Writes UTF-8 text to /output/entry.txt.
+Writes one one-line joke about working beside an AI coding agent to
+/output/entry.txt. Pure standard library, deterministic, no network.
 """
 
 import os
+import sys
 
 JOKE = (
     "My AI coding agent writes a thousand lines before my coffee cools, "
@@ -13,18 +14,37 @@ JOKE = (
     "it never ran."
 )
 
+OUTPUT_PATH = "/output/entry.txt"
 
-MAX_CHARS = 280
 
+def main() -> int:
+    joke = JOKE.strip()
+    if not joke:
+        print("error: joke is empty", file=sys.stderr)
+        return 1
+    if "\n" in joke or "\r" in joke:
+        print("error: joke must be a single line", file=sys.stderr)
+        return 1
+    if not 1 <= len(joke) <= 280:
+        print(f"error: joke is {len(joke)} code points, must be 1-280",
+              file=sys.stderr)
+        return 1
 
-def main() -> None:
-    text = JOKE.strip()
-    assert 1 <= len(text) <= MAX_CHARS, "joke must be 1-280 code points"
-    assert text.strip(), "joke must not be only whitespace"
-    os.makedirs("/output", exist_ok=True)
-    with open("/output/entry.txt", "w", encoding="utf-8") as handle:
-        handle.write(text)
+    os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
+    with open(OUTPUT_PATH, "w", encoding="utf-8", newline="\n") as f:
+        f.write(joke + "\n")
+
+    # Improvement: read the file back and verify it round-trips exactly,
+    # so a silent write failure can never pass as success.
+    with open(OUTPUT_PATH, "r", encoding="utf-8", newline="") as f:
+        written = f.read()
+    if written != joke + "\n":
+        print("error: written output does not match the joke", file=sys.stderr)
+        return 1
+
+    print(f"wrote {len(joke)}-character joke to {OUTPUT_PATH}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
